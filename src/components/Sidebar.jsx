@@ -1,183 +1,149 @@
 import React from "react";
+import logo from "../assets/react.svg";
+import {
+  FaCalendar,
+  FaBookmark,
+  FaBook,
+  FaUser,
+  FaHome,
+  FaStickyNote,
+  FaTags,
+  FaChevronRight
+} from "react-icons/fa";
+import { NavLink } from "react-router-dom";
 
 const Sidebar = () => {
+  const navItem =
+    "group flex items-center gap-3 h-12 px-4 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition";
+
+  const activeItem = "bg-gray-800 text-white";
+
+  const subItem =
+    "flex items-center h-10 pl-12 pr-4 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition";
+
   return (
-    <div class="flex h-screen w-16 flex-col justify-between border-e border-gray-100 bg-black">
+    <aside className="group peer fixed left-0 top-0 z-50 flex h-screen w-16 hover:w-56 flex-col justify-between bg-black border-r border-gray-800 transition-all duration-300">
+      {/* Top Section */}
       <div>
-        <div class="inline-flex size-16 items-center justify-center">
-          <span class="grid size-10 place-content-center rounded-lg bg-gray-800 text-xs text-white">
-            A
+        {/* Logo */}
+        <div className="flex h-16 items-center justify-center group-hover:justify-start px-4 transition-all">
+          <span className="grid h-10 w-10 place-content-center rounded-lg bg-gray-800">
+            <img src={logo} alt="Logo" className="h-6 w-6" />
           </span>
         </div>
 
-        <div class="border-t border-gray-100">
-          <div class="px-2">
-            <div class="py-4">
-              <a
-                href="#"
-                class="t group relative flex justify-center rounded-sm bg-blue-50 px-2 py-1.5 text-blue-700"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="size-5 opacity-75"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                  ></path>
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  ></path>
-                </svg>
-
-                <span class="invisible absolute start-full top-1/2 ms-4 -translate-y-1/2 rounded-sm bg-gray-900 px-2 py-1.5 text-xs font-medium text-white group-hover:visible">
-                  General
-                </span>
-              </a>
-            </div>
-
-            <ul class="space-y-1 border-t border-gray-100 pt-4">
-              <li>
-                <a
-                  href="#"
-                  class="group relative flex justify-center rounded-sm px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="size-5 opacity-75"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                    ></path>
-                  </svg>
-
-                  <span class="invisible absolute start-full top-1/2 ms-4 -translate-y-1/2 rounded-sm bg-gray-900 px-2 py-1.5 text-xs font-medium text-white group-hover:visible">
-                    Teams
-                  </span>
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  class="group relative flex justify-center rounded-sm px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="size-5 opacity-75"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                    ></path>
-                  </svg>
-
-                  <span class="invisible absolute start-full top-1/2 ms-4 -translate-y-1/2 rounded-sm bg-gray-900 px-2 py-1.5 text-xs font-medium text-white group-hover:visible">
-                    Billing
-                  </span>
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  class="group relative flex justify-center rounded-sm px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="size-5 opacity-75"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                    ></path>
-                  </svg>
-
-                  <span class="invisible absolute start-full top-1/2 ms-4 -translate-y-1/2 rounded-sm bg-gray-900 px-2 py-1.5 text-xs font-medium text-white group-hover:visible">
-                    Invoices
-                  </span>
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  class="group relative flex justify-center rounded-sm px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="size-5 opacity-75"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    ></path>
-                  </svg>
-
-                  <span class="invisible absolute start-full top-1/2 ms-4 -translate-y-1/2 rounded-sm bg-gray-900 px-2 py-1.5 text-xs font-medium text-white group-hover:visible">
-                    Account
-                  </span>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="sticky inset-x-0 bottom-0 border-t border-gray-100 bg-white p-2">
-        <a
-          href="#"
-          class="group relative flex w-full justify-center rounded-lg px-2 py-1.5 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="size-5 opacity-75"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
+        {/* Navigation */}
+        <nav className="mt-6 flex flex-col gap-1">
+          {/* Dashboard */}
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              `${navItem} ${isActive ? activeItem : ""}`
+            }
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-            ></path>
-          </svg>
+            <FaHome className="text-lg min-w-[20px]" />
+            <span className="opacity-0 group-hover:opacity-100 transition">
+              Dashboard
+            </span>
+          </NavLink>
 
-          <span class="invisible absolute start-full top-1/2 ms-4 -translate-y-1/2 rounded-sm bg-gray-900 px-2 py-1.5 text-xs font-medium text-white group-hover:visible">
-            Logout
-          </span>
-        </a>
+          {/* Notes */}
+          <NavLink
+            to="/notes"
+            className={({ isActive }) =>
+              `${navItem} ${isActive ? activeItem : ""}`
+            }
+          >
+            <FaStickyNote className="text-lg min-w-[20px]" />
+            <span className="opacity-0 group-hover:opacity-100 transition">
+              Notes
+            </span>
+          </NavLink>
+
+          {/* Course with Submenu */}
+          <div className="group/course">
+            <NavLink
+              to="/course"
+              className={({ isActive }) =>
+                `${navItem} ${isActive ? activeItem : ""}`
+              }
+            >
+              <FaBook className="text-lg min-w-[20px]" />
+              <span className="flex-1 opacity-0 group-hover:opacity-100 transition">
+                Course
+              </span>
+            </NavLink>
+
+            {/* Submenu */}
+            <div className="hidden group-hover:block group-hover/course:block">
+              <NavLink
+                to="/course/course-name"
+                className={({ isActive }) =>
+                  `${subItem} ${isActive ? "text-white" : ""}`
+                }
+              >
+                Course Name
+              </NavLink>
+
+              <NavLink
+                to="/course/branch-name"
+                className={({ isActive }) =>
+                  `${subItem} ${isActive ? "text-white" : ""}`
+                }
+              >
+                Branch Name
+              </NavLink>
+            </div>
+          </div>
+
+          {/* Year */}
+          <NavLink
+            to="/year"
+            className={({ isActive }) =>
+              `${navItem} ${isActive ? activeItem : ""}`
+            }
+          >
+            <FaCalendar className="text-lg min-w-[20px]" />
+            <span className="opacity-0 group-hover:opacity-100 transition">
+              Year
+            </span>
+          </NavLink>
+
+          <NavLink
+            to="/subject"
+            className={({ isActive }) =>
+              `${navItem} ${isActive ? activeItem : ""}`
+            }
+          >
+            <FaBookmark className="text-lg min-w-[20px]" />
+            <span className="opacity-0 group-hover:opacity-100 transition">
+              Subject
+            </span>
+          </NavLink>
+
+          {/* Categories */}
+          <NavLink
+            to="/categories"
+            className={({ isActive }) =>
+              `${navItem} ${isActive ? activeItem : ""}`
+            }
+          >
+            <FaTags className="text-lg min-w-[20px]" />
+            <span className="opacity-0 group-hover:opacity-100 transition">
+              Categories
+            </span>
+          </NavLink>
+        </nav>
       </div>
-    </div>
+
+      {/* Profile */}
+      <div className="flex items-center gap-3 px-4 py-4 text-gray-400 hover:text-white cursor-pointer hover:bg-gray-800 rounded-lg transition">
+        <FaUser className="text-lg min-w-[20px]" />
+        <span className="opacity-0 group-hover:opacity-100 transition">
+          Profile
+        </span>
+      </div>
+    </aside>
   );
 };
 

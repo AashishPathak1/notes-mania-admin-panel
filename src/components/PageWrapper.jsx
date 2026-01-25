@@ -1,18 +1,23 @@
-
-
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 
 const PageWrapper = ({ children }) => {
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <>
       <Sidebar />
+      <Header />
 
-      <div className="flex flex-1 flex-col">
-        <Header />
-        <main className="p-6">{children}</main>
-      </div>
-    </div>
+      <main
+        className="
+          pt-10
+          ml-16 peer-hover:ml-56
+          transition-all duration-300
+          min-h-screen bg-gray-100 p-10
+        "
+      >
+        {children}
+      </main>
+    </>
   );
 };
 
