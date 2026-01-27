@@ -1,7 +1,7 @@
 const Header = () => {
   return (
     <header
-      className="h-14
+      className="h-14 
           ml-16 peer-hover:ml-56
           transition-all duration-300
           bg-black px-20 flex items-center justify-between"
