@@ -22,7 +22,7 @@ function App() {
           {/* Course Routes */}
           <Route path="/course" element={<Course />} />
           <Route path="/course/name" element={<CourseName />} />
-          <Route path="/course/name" element={<BranchName />} />
+          <Route path="/course/branch" element={<BranchName />} />
         </Routes>
       </PageWrapper>
     </Router>
