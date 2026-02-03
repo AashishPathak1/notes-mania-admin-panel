@@ -146,20 +146,25 @@ const CourseName = () => {
                 Fetching courses...
               </p>
             </div>
-          ) :
-           (
+          ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-200">
+                  <tr className="bg-indigo-50/50 border-b border-slate-200">
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-                      #
+                      S.No
                     </th>
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Course Detail
+                      Course ID
                     </th>
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Created
+                      Course Name
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Created At
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Updated At
                     </th>
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">
                       Actions
@@ -170,7 +175,7 @@ const CourseName = () => {
                 <tbody className="divide-y divide-slate-100">
                   {courses.length === 0 ? (
                     <tr>
-                      <td colSpan="4" className="py-20 text-center">
+                      <td colSpan="6" className="py-20 text-center">
                         <div className="flex flex-col items-center justify-center text-slate-400">
                           <FiBookOpen size={48} className="mb-3 opacity-20" />
                           <p className="text-lg font-medium text-slate-500">
@@ -186,23 +191,26 @@ const CourseName = () => {
                     courses.map((course, index) => (
                       <tr
                         key={course._id}
-                        className="group hover:bg-indigo-50/30 transition-colors"
+                        className="group hover:bg-indigo-50/50 transition-colors"
                       >
                         <td className="px-6 py-4">
-                          <span className="text-slate-400 font-mono text-sm">
+                          <span className="text-slate-800 font-mono text-sm">
                             {String(index + 1).padStart(2, "0")}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="font-semibold text-slate-800">
-                            {course.courseName}
-                          </div>
-                          <div className="text-xs text-slate-400 font-mono mt-0.5">
+                          <div className="text-xs text-slate-800 font-mono mt-0.5">
                             {course._id}
                           </div>
                         </td>
+
                         <td className="px-6 py-4">
-                          <div className="text-sm text-slate-600">
+                          <div className=" text-slate-800">
+                            {course.courseName}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-slate-800">
                             {new Date(course.createdAt).toLocaleDateString(
                               undefined,
                               {
@@ -212,7 +220,10 @@ const CourseName = () => {
                               }
                             )}
                           </div>
-                          <div className="text-[10px] text-slate-400 uppercase">
+                        </td>
+
+                        <td className="px-6 py-4">
+                          <div className="text-[10px] text-slate-800 uppercase">
                             Updated{" "}
                             {new Date(course.updatedAt).toLocaleTimeString([], {
                               hour: "2-digit",
@@ -224,14 +235,14 @@ const CourseName = () => {
                           <div className="flex justify-center gap-2">
                             <button
                               onClick={() => handleEdit(course)}
-                              className="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-all shadow-sm"
+                              className="p-2 rounded-lg bg-white border border-slate-200 text-slate-800 hover:text-green-700 hover:border-indigo-200 hover:bg-green-100 transition-all shadow-sm"
                               title="Edit Course"
                             >
                               <FiEdit2 size={16} />
                             </button>
                             <button
                               onClick={() => handleDelete(course._id)}
-                              className="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm"
+                              className="p-2 rounded-lg bg-white border border-slate-200 text-slate-800 hover:text-red-600 hover:border-red-200 hover:bg-red-100 transition-all shadow-sm"
                               title="Delete Course"
                             >
                               <FiTrash2 size={16} />
