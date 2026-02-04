@@ -1,18 +1,40 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FiBookOpen, FiPlus, FiX } from "react-icons/fi";
-const API_BASE = "";
+import { FiBookOpen, FiPlus, FiX, FiEdit2, FiTrash2 } from "react-icons/fi";
+
+const API_BASE = "https://bookmainabackend.onrender.com/api/M2";
 
 const BranchName = () => {
+  const ITEMS_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [courseName, setCourseName] = useState([]);
+  const [selectCourseID, setSelectCourseID] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [branchName, setBranchName] = useState("");
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
 
+  const totalPages = Math.ceil(branches.length / ITEMS_PER_PAGE);
+  const paginatedBranches = branches.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const fetchCourses = async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/getAllCourseName`);
+      if (response.data.data) {
+        setCourseName(response.data.data);
+      }
+    } catch (error) {
+      console.log("error in fetching course", error);
+    }
+  };
+
   const fetchBranches = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/getAllBranches`);
+      const response = await axios.get(`${API_BASE}/getAllBranchName`);
       if (response.data.data) {
         setBranches(response.data.data);
       }
@@ -23,23 +45,42 @@ const BranchName = () => {
     }
   };
 
+  // fetch branches ONCE
   useEffect(() => {
     fetchBranches();
   }, []);
 
+  // fetch courses ONLY when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchCourses();
+    }
+  }, [isOpen]);
+
   const handleSave = async () => {
     if (!branchName.trim()) {
-      alert("branch name is required");
+      alert("Branch name is required");
       return;
     }
 
     try {
       setLoading(true);
-      const res = await axios.post(`${API_BASE}/addbranchName`, { branchName });
+      if (!selectCourseID) {
+        alert("Course is required");
+        return;
+      }
+
+      const payload = {
+        branchName: [branchName],
+        courseId: selectCourseID
+      };
+
+      const res = await axios.post(`${API_BASE}/addBranchName`, payload);
 
       if (res.data.success) {
-        setBranches((prev) => [...prev, res.data.data]);
+        await fetchBranches();
         setBranchName("");
+        setSelectCourseID("");
         setIsOpen(false);
       }
     } catch (error) {
@@ -50,8 +91,16 @@ const BranchName = () => {
     }
   };
 
-  const handleDelete = (branch) => {
-    alert(`this is the branch for ${branch}`);
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this branch?")) return;
+    // alert(`this is the branch for ${id}`);
+
+    try {
+      await axios.delete(`${API_BASE}/deleteBranchName/${id}`);
+      setBranches((prev) => prev.filter((branch) => branch._id !== id));
+    } catch (error) {
+      console.error("Error in HandleDelete", error);
+    }
   };
 
   const handleEdit = (id) => {
@@ -107,19 +156,61 @@ const BranchName = () => {
               </div>
 
               <div className="p-6">
-                <label className="block mb-4">
-                  <span className="text-sm font-semibold text-slate-700 block mb-2">
-                    Branch Name
-                  </span>
+                <div className="mb-6">
+                  <label className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">
+                      1
+                    </span>
+                    <span className="text-sm font-semibold text-slate-700">
+                      Course Name
+                    </span>
+                  </label>
+
+                  <select
+                    value={selectCourseID}
+                    onChange={(e) => setSelectCourseID(e.target.value)}
+                    className="w-full appearance-none rounded-xl border border-slate-300
+                    px-4 py-3 bg-white
+                    shadow-sm
+                    hover:border-indigo-400
+                    focus:ring-4 focus:ring-indigo-500/20
+                    focus:border-indigo-500
+                    focus:outline-none
+                    transition-all"
+                  >
+                    <option value="">Select Course</option>
+                    {courseName.map((course) => (
+                      <option key={course._id} value={course._id}>
+                        {course.courseName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mb-6">
+                  <label className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">
+                      2
+                    </span>
+                    <span className="text-sm font-semibold text-slate-700">
+                      Branch Name
+                    </span>
+                  </label>
+
                   <input
                     type="text"
-                    autoFocus
                     value={branchName}
                     onChange={(e) => setBranchName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:outline-none transition-all placeholder:text-slate-400"
                     placeholder="e.g. AI / ML"
+                    className="w-full rounded-xl border border-slate-300 px-4 py-3
+                    shadow-sm
+                  hover:border-indigo-400
+                    focus:ring-4 focus:ring-indigo-500/20
+                  focus:border-indigo-500
+                    focus:outline-none
+                    transition-all
+                    placeholder:text-slate-400"
                   />
-                </label>
+                </div>
 
                 <div className="flex justify-end gap-3 mt-8">
                   <button
@@ -147,12 +238,12 @@ const BranchName = () => {
          *******************************************
          */}
         {/* Main Content Area Starts Here */}
-        <div>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           {pageLoading ? (
             <div className="py-20 flex flex-col items-center justify-center space-y-4">
               <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
               <p className="text-slate-500 font-medium tracking-wide">
-                Fetching branchs...
+                Fetching branches...
               </p>
             </div>
           ) : (
@@ -165,6 +256,9 @@ const BranchName = () => {
                     </th>
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
                       Branch ID
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Course Name
                     </th>
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
                       Branch Name
@@ -184,7 +278,7 @@ const BranchName = () => {
                 <tbody className="divide-y divide-slate-100">
                   {branches.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="py-20 text-center">
+                      <td colSpan="7" className="py-20 text-center">
                         <div className="flex flex-col items-center justify-center text-slate-400">
                           <FiBookOpen
                             size={48}
@@ -200,14 +294,16 @@ const BranchName = () => {
                       </td>
                     </tr>
                   ) : (
-                    branches.map((branch, index) => (
+                    paginatedBranches.filter(Boolean).map((branch, index) => (
                       <tr
                         key={branch._id}
                         className="group hover:bg-indigo-50/50 transition-colors"
                       >
                         <td className="px-6 py-4">
                           <span className="text-slate-800 font-mono text-sm">
-                            {String(index + 1).padStart(2, "0")}
+                            {String(
+                              (currentPage - 1) * ITEMS_PER_PAGE + index + 1
+                            ).padStart(2, "0")}
                           </span>
                         </td>
                         <td className="px-6 py-4">
@@ -215,10 +311,15 @@ const BranchName = () => {
                             {branch._id}
                           </div>
                         </td>
-
+                        {/* {branch.courseId?.courseName || "—"} */}
                         <td className="px-6 py-4">
                           <div className=" text-slate-800">
-                            {branch.courseName}
+                            {branch.courseId?.courseName || "—"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className=" text-slate-800">
+                            {branch.branchName?.join(", ")}
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -272,10 +373,48 @@ const BranchName = () => {
            *******************************************
            */}
           <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
-            <p className="text-xs text-slate-500 font-medium">
-              Showing {branches.length} total branchs
+            <p className="text-xs text-slate-500 text-center font-medium">
+              Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} -{" "}
+              {Math.min(currentPage * ITEMS_PER_PAGE, branches.length)} of{" "}
+              {branches.length} Branches
             </p>
           </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-slate-200 px-6 py-4  bg-white">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                className="px-4 py-2 text-sm rounded-lg border disabled:opacity-50"
+              >
+                Previous
+              </button>
+
+              <div className="flex gap-2">
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`px-3 py-1 text-sm rounded-lg border ${
+                      currentPage === i + 1
+                        ? "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-white text-slate-600"
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className="px-4 py-2 text-sm rounded-lg border disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

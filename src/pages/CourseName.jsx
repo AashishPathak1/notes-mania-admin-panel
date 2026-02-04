@@ -5,11 +5,22 @@ import { FiEdit2, FiTrash2, FiPlus, FiBookOpen, FiX } from "react-icons/fi";
 const API_BASE = "https://bookmainabackend.onrender.com/api/M2";
 
 const CourseName = () => {
+  const ITEMS_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
   const [courseName, setCourseName] = useState("");
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [courseDurationInYear, setCourseDurationInYear] = useState("");
+  const [isSemester, setIsSemester] = useState(false);
+  const [semesterCount, setSemesterCount] = useState("");
   const [pageLoading, setPageLoading] = useState(true);
+
+  const totalPages = Math.ceil(courses.length / ITEMS_PER_PAGE);
+  const paginatedCourses = courses.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const fetchCourses = async () => {
     try {
@@ -34,13 +45,34 @@ const CourseName = () => {
       return;
     }
 
+    if (!courseDurationInYear) {
+      alert("Course duration is required");
+      return;
+    }
+
+    if (isSemester && !semesterCount) {
+      alert("Semester count is required");
+      return;
+    }
+
     try {
       setLoading(true);
-      const res = await axios.post(`${API_BASE}/addCourseName`, { courseName });
+      const payload = {
+        courseName,
+        courseDurationInYear: Number(courseDurationInYear),
+        isSemester: isSemester ? "yes" : "no",
+        semesterCount: isSemester ? Number(semesterCount) : 0
+      };
 
+      const res = await axios.post(`${API_BASE}/addCourseName`, payload);
       if (res.data.success) {
-        setCourses((prev) => [...prev, res.data.data]);
+        await fetchCourses();
+
+        // reset form
         setCourseName("");
+        setCourseDurationInYear("");
+        setIsSemester(false);
+        setSemesterCount("");
         setIsOpen(false);
       }
     } catch (error) {
@@ -55,8 +87,16 @@ const CourseName = () => {
     alert(`Edit course: ${course.courseName}`);
   };
 
-  const handleDelete = (id) => {
-    alert(`Delete course id: ${id}`);
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this course?")) return;
+
+    try {
+      await axios.delete(`${API_BASE}/deleteCourseName/${id}`);
+      setCourses((prev) => prev.filter((course) => course._id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("Failed to delete course");
+    }
   };
 
   return (
@@ -113,9 +153,97 @@ const CourseName = () => {
                     value={courseName}
                     onChange={(e) => setCourseName(e.target.value)}
                     className="w-full rounded-xl border border-slate-200 px-4 py-3 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:outline-none transition-all placeholder:text-slate-400"
-                    placeholder="e.g. Advanced Web Development"
+                    placeholder="e.g. B.Tech / BCA / BBA"
                   />
                 </label>
+
+                <label className="block mb-4">
+                  <span className="text-sm font-semibold text-slate-700 block mb-2">
+                    Course Duration (Years)
+                  </span>
+                  <input
+                    type="number"
+                    autoFocus
+                    value={courseDurationInYear}
+                    onChange={(e) => setCourseDurationInYear(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:outline-none transition-all placeholder:text-slate-400"
+                    placeholder="e.g. 1 / 2 / 3"
+                  />
+                </label>
+
+                <label className="block mb-4">
+                  <span className="text-sm font-semibold text-slate-700 block mb-3">
+                    Is Semester Based?
+                  </span>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* NO */}
+                    {/* NO */}
+                    <label
+                      className={`cursor-pointer rounded-xl border px-5 py-4 text-center transition-all
+                      ${
+                        !isSemester
+                          ? "border-indigo-600 bg-indigo-50 ring-4 ring-indigo-500/10"
+                          : "border-slate-200 hover:border-indigo-400"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="semester"
+                        checked={!isSemester}
+                        onChange={() => setIsSemester(false)}
+                        className="hidden"
+                      />
+                      <span className="block text-sm font-semibold text-slate-700">
+                        No
+                      </span>
+                      <span className="block text-xs text-slate-500 mt-1">
+                        Annual / Non-semester
+                      </span>
+                    </label>
+
+                    {/* YES */}
+                    <label
+                      className={`cursor-pointer rounded-xl border px-5 py-4 text-center transition-all
+                      ${
+                        isSemester
+                          ? "border-indigo-600 bg-indigo-50 ring-4 ring-indigo-500/10"
+                          : "border-slate-200 hover:border-indigo-400"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="semester"
+                        checked={isSemester}
+                        onChange={() => setIsSemester(true)}
+                        className="hidden"
+                      />
+                      <span className="block text-sm font-semibold text-slate-700">
+                        Yes
+                      </span>
+                      <span className="block text-xs text-slate-500 mt-1">
+                        Semester-wise system
+                      </span>
+                    </label>
+                  </div>
+                </label>
+
+                {isSemester && (
+                  <label className="block mb-4">
+                    <span className="text-sm font-semibold text-slate-700 block mb-2">
+                      Number of Semesters
+                    </span>
+                    <input
+                      type="number"
+                      min={1}
+                      autoFocus
+                      value={semesterCount}
+                      onChange={(e) => setSemesterCount(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:outline-none transition-all placeholder:text-slate-400"
+                      placeholder="e.g. 1 / 2 / 3 / 4 / 5 / 6 / 7 / 8"
+                    />
+                  </label>
+                )}
 
                 <div className="flex justify-end gap-3 mt-8">
                   <button
@@ -161,6 +289,12 @@ const CourseName = () => {
                       Course Name
                     </th>
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Duration
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Semesters
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
                       Created At
                     </th>
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -175,7 +309,7 @@ const CourseName = () => {
                 <tbody className="divide-y divide-slate-100">
                   {courses.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="py-20 text-center">
+                      <td colSpan="8" className="py-20 text-center">
                         <div className="flex flex-col items-center justify-center text-slate-400">
                           <FiBookOpen size={48} className="mb-3 opacity-20" />
                           <p className="text-lg font-medium text-slate-500">
@@ -188,14 +322,16 @@ const CourseName = () => {
                       </td>
                     </tr>
                   ) : (
-                    courses.map((course, index) => (
+                    paginatedCourses.filter(Boolean).map((course, index) => (
                       <tr
                         key={course._id}
                         className="group hover:bg-indigo-50/50 transition-colors"
                       >
                         <td className="px-6 py-4">
                           <span className="text-slate-800 font-mono text-sm">
-                            {String(index + 1).padStart(2, "0")}
+                            {String(
+                              (currentPage - 1) * ITEMS_PER_PAGE + index + 1
+                            ).padStart(2, "0")}
                           </span>
                         </td>
                         <td className="px-6 py-4">
@@ -209,6 +345,20 @@ const CourseName = () => {
                             {course.courseName}
                           </div>
                         </td>
+
+                        <td className="px-6 py-4">
+                          <div className=" text-slate-800">
+                            {`${course.courseDurationInYear} Year`}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className=" text-slate-800">
+                            {course.isSemester === "yes"
+                              ? `${course.semesterArr?.length || 0} Semesters`
+                              : "No Semester"}
+                          </div>
+                        </td>
+
                         <td className="px-6 py-4">
                           <div className="text-sm text-slate-800">
                             {new Date(course.createdAt).toLocaleDateString(
@@ -258,10 +408,48 @@ const CourseName = () => {
           )}
 
           <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
-            <p className="text-xs text-slate-500 font-medium">
-              Showing {courses.length} total courses
+            <p className="text-xs text-slate-500 text-center font-medium">
+              Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} -{" "}
+              {Math.min(currentPage * ITEMS_PER_PAGE, courses.length)} of{" "}
+              {courses.length} Courses
             </p>
           </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-slate-200 px-6 py-4  bg-white">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                className="px-4 py-2 text-sm rounded-lg border disabled:opacity-50"
+              >
+                Previous
+              </button>
+
+              <div className="flex gap-2">
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`px-3 py-1 text-sm rounded-lg border ${
+                      currentPage === i + 1
+                        ? "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-white text-slate-600"
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className="px-4 py-2 text-sm rounded-lg border disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
