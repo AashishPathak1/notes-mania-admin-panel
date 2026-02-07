@@ -1,111 +1,196 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/api";
 import { FiBookOpen, FiPlus, FiX, FiEdit2, FiTrash2 } from "react-icons/fi";
 
-const API_BASE = "https://bookmainabackend.onrender.com/api/M2";
-
+/**
+ * BranchName Component
+ * --------------------
+ * Handles:
+ * - Listing branches with pagination
+ * - Adding a new branch
+ * - Editing an existing branch
+ * - Deleting a branch
+ */
 const BranchName = () => {
   const ITEMS_PER_PAGE = 5;
+
+  /** State to track whether we are editing an existing branch */
+  const [updateId, setUpdateId] = useState(null);
+
+  /** Pagination state */
   const [currentPage, setCurrentPage] = useState(1);
+
+  /** Course & branch related state */
   const [courseName, setCourseName] = useState([]);
   const [selectCourseID, setSelectCourseID] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
   const [branchName, setBranchName] = useState("");
   const [branches, setBranches] = useState([]);
+
+  /** UI state */
+  const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
 
+  /** Pagination helpers */
   const totalPages = Math.ceil(branches.length / ITEMS_PER_PAGE);
   const paginatedBranches = branches.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
+  /**
+   * Fetch all available courses
+   * Triggered only when modal opens
+   */
   const fetchCourses = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/getAllCourseName`);
-      if (response.data.data) {
+      const response = await api.get(`/getAllCourseName`);
+      if (response.data?.data) {
         setCourseName(response.data.data);
       }
     } catch (error) {
-      console.log("error in fetching course", error);
+      console.log("Error fetching courses", error);
     }
   };
 
+  /**
+   * Fetch all branches
+   * Triggered once on component mount
+   */
   const fetchBranches = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/getAllBranchName`);
-      if (response.data.data) {
+      const response = await api.get(`/getAllBranchName`);
+      if (response.data?.data) {
         setBranches(response.data.data);
       }
     } catch (error) {
-      console.error("GET Branch Error", error);
+      console.error("Error fetching branches", error);
     } finally {
       setPageLoading(false);
     }
   };
 
-  // fetch branches ONCE
+  /** Initial branch fetch */
   useEffect(() => {
     fetchBranches();
   }, []);
 
-  // fetch courses ONLY when modal opens
+  /** Fetch courses when modal opens */
   useEffect(() => {
     if (isOpen) {
       fetchCourses();
     }
   }, [isOpen]);
 
+  /**
+   * Create a new branch
+   */
   const handleSave = async () => {
-    if (!branchName.trim()) {
+    // Basic client-side validation
+    const name = branchName?.trim();
+    if (!name) {
       alert("Branch name is required");
       return;
     }
 
+    if (name.length > 100) {
+      alert("Branch name must be 100 characters or less");
+      return;
+    }
+
+    if (!selectCourseID) {
+      alert("Course is required");
+      return;
+    }
+
+    const payload = {
+      branchName: [name],
+      courseId: selectCourseID
+    };
+
     try {
       setLoading(true);
-      if (!selectCourseID) {
-        alert("Course is required");
-        return;
+      const res = await api.post(`/addBranchName`, payload);
+      if (res.data?.success) {
+        await fetchBranches();
+        setBranchName("");
+        setSelectCourseID("");
+        setIsOpen(false);
+      } else {
+        const msg = res.data?.message || "Failed to add branch";
+        alert(msg);
       }
+    } catch (error) {
+      console.error("POST branch Error:", error);
+      const serverMsg = error?.response?.data?.message;
+      alert(serverMsg || "Failed to add branch");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Delete a branch by ID
+   */
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this branch?")) return;
+
+    try {
+      const res = await api.delete(`/deleteBranchName/${id}`);
+      if (res.data?.success || res.status === 200) {
+        setBranches((prev) => prev.filter((branch) => branch._id !== id));
+      } else {
+        alert(res.data?.message || "Failed to delete branch");
+      }
+    } catch (error) {
+      console.error("Error deleting branch", error);
+      const serverMsg = error?.response?.data?.message;
+      alert(serverMsg || "Failed to delete branch");
+    }
+  };
+
+  /**
+   * Prepare edit mode by pre-filling modal fields
+   */
+  const handleEdit = (branch) => {
+    setUpdateId(branch._id);
+    setBranchName(branch.branchName?.[0]);
+    setSelectCourseID(branch.courseId?._id);
+    setIsOpen(true);
+  };
+
+  /**
+   * Update an existing branch
+   */
+  const updateBranches = async () => {
+    if (!updateId) return;
+
+    try {
+      setLoading(true);
 
       const payload = {
         branchName: [branchName],
         courseId: selectCourseID
       };
 
-      const res = await axios.post(`${API_BASE}/addBranchName`, payload);
-
-      if (res.data.success) {
-        await fetchBranches();
-        setBranchName("");
-        setSelectCourseID("");
-        setIsOpen(false);
+      const res = await api.put(`/updateBranchName/${updateId}`, payload);
+      if (!res.data?.success) {
+        alert(res.data?.message || "Failed to update branch");
+        return;
       }
+      await fetchBranches();
+
+      setIsOpen(false);
+      setBranchName("");
+      setSelectCourseID("");
+      setUpdateId(null);
     } catch (error) {
-      console.error("POST branch Error:", error);
-      alert("Failed to add branch");
+      console.log("Error updating branch", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this branch?")) return;
-    // alert(`this is the branch for ${id}`);
-
-    try {
-      await axios.delete(`${API_BASE}/deleteBranchName/${id}`);
-      setBranches((prev) => prev.filter((branch) => branch._id !== id));
-    } catch (error) {
-      console.error("Error in HandleDelete", error);
-    }
-  };
-
-  const handleEdit = (id) => {
-    alert(`this is the branch for ${id}`);
-  };
   return (
     <div className="w-full font-sans">
       <div className="w-full mx-auto">
@@ -123,6 +208,9 @@ const BranchName = () => {
           <button
             className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-sm active:scale-95"
             onClick={() => {
+              setUpdateId(null); // 👈 IMPORTANT
+              setBranchName("");
+              setSelectCourseID("");
               setIsOpen(true);
             }}
           >
@@ -145,7 +233,10 @@ const BranchName = () => {
             ></div>
             <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all">
               <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <h2>Create New Branch</h2>
+                <h2 className="font-semibold">
+                  {updateId ? "Update Branch" : "Create New Branch"}
+                </h2>
+
                 <button
                   onClick={() => {
                     setIsOpen(false);
@@ -223,10 +314,16 @@ const BranchName = () => {
                   </button>
                   <button
                     className="px-6 py-2.5 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-indigo-200"
-                    onClick={handleSave}
+                    onClick={updateId ? updateBranches : handleSave}
                     disabled={loading}
                   >
-                    {loading ? "craeting..." : "Add Branch"}
+                    {loading
+                      ? updateId
+                        ? "Updating..."
+                        : "Creating..."
+                      : updateId
+                        ? "Update Branch"
+                        : "Add Branch"}
                   </button>
                 </div>
               </div>
@@ -324,24 +421,31 @@ const BranchName = () => {
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-sm text-slate-800">
-                            {new Date(branch.createdAt).toLocaleDateString(
-                              undefined,
-                              {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric"
-                              }
-                            )}
+                            {isNaN(new Date(branch.createdAt).getTime())
+                              ? "—"
+                              : new Date(branch.createdAt).toLocaleDateString(
+                                  undefined,
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric"
+                                  }
+                                )}
                           </div>
                         </td>
 
                         <td className="px-6 py-4">
                           <div className="text-[10px] text-slate-800 uppercase">
                             Updated{" "}
-                            {new Date(branch.updatedAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit"
-                            })}
+                            {isNaN(new Date(branch.updatedAt).getTime())
+                              ? "—"
+                              : new Date(branch.updatedAt).toLocaleTimeString(
+                                  [],
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit"
+                                  }
+                                )}
                           </div>
                         </td>
                         <td className="px-6 py-4">

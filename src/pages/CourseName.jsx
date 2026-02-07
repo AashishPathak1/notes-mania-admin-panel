@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/api";
 import { FiEdit2, FiTrash2, FiPlus, FiBookOpen, FiX } from "react-icons/fi";
-
-const API_BASE = "https://bookmainabackend.onrender.com/api/M2";
 
 const CourseName = () => {
   const ITEMS_PER_PAGE = 5;
@@ -24,8 +22,8 @@ const CourseName = () => {
 
   const fetchCourses = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/getAllCourseName`);
-      if (res.data.success) {
+      const res = await api.get(`/getAllCourseName`);
+      if (res.data?.data) {
         setCourses(res.data.data);
       }
     } catch (error) {
@@ -40,7 +38,8 @@ const CourseName = () => {
   }, []);
 
   const handleSave = async () => {
-    if (!courseName.trim()) {
+    const name = courseName?.trim();
+    if (!name) {
       alert("Course name is required");
       return;
     }
@@ -50,22 +49,35 @@ const CourseName = () => {
       return;
     }
 
-    if (isSemester && !semesterCount) {
-      alert("Semester count is required");
+    const duration = Number(courseDurationInYear);
+    if (Number.isNaN(duration) || duration <= 0 || duration > 10) {
+      alert("Course duration must be a positive number (max 10)");
       return;
     }
 
+    if (isSemester) {
+      if (!semesterCount) {
+        alert("Semester count is required");
+        return;
+      }
+      const sem = Number(semesterCount);
+      if (Number.isNaN(sem) || sem < 1 || sem > 20) {
+        alert("Semester count must be a positive integer");
+        return;
+      }
+    }
+
+    const payload = {
+      courseName: name,
+      courseDurationInYear: duration,
+      isSemester: isSemester ? "yes" : "no",
+      semesterCount: isSemester ? Number(semesterCount) : 0
+    };
+
     try {
       setLoading(true);
-      const payload = {
-        courseName,
-        courseDurationInYear: Number(courseDurationInYear),
-        isSemester: isSemester ? "yes" : "no",
-        semesterCount: isSemester ? Number(semesterCount) : 0
-      };
-
-      const res = await axios.post(`${API_BASE}/addCourseName`, payload);
-      if (res.data.success) {
+      const res = await api.post(`/addCourseName`, payload);
+      if (res.data?.success) {
         await fetchCourses();
 
         // reset form
@@ -74,10 +86,13 @@ const CourseName = () => {
         setIsSemester(false);
         setSemesterCount("");
         setIsOpen(false);
+      } else {
+        alert(res.data?.message || "Failed to add course");
       }
     } catch (error) {
       console.error("POST Course Error:", error);
-      alert("Failed to add course");
+      const serverMsg = error?.response?.data?.message;
+      alert(serverMsg || "Failed to add course");
     } finally {
       setLoading(false);
     }
@@ -91,11 +106,16 @@ const CourseName = () => {
     if (!window.confirm("Are you sure you want to delete this course?")) return;
 
     try {
-      await axios.delete(`${API_BASE}/deleteCourseName/${id}`);
-      setCourses((prev) => prev.filter((course) => course._id !== id));
+      const res = await api.delete(`/deleteCourseName/${id}`);
+      if (res.data?.success || res.status === 200) {
+        setCourses((prev) => prev.filter((course) => course._id !== id));
+      } else {
+        alert(res.data?.message || "Failed to delete course");
+      }
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Failed to delete course");
+      const serverMsg = error?.response?.data?.message;
+      alert(serverMsg || "Failed to delete course");
     }
   };
 
@@ -361,24 +381,31 @@ const CourseName = () => {
 
                         <td className="px-6 py-4">
                           <div className="text-sm text-slate-800">
-                            {new Date(course.createdAt).toLocaleDateString(
-                              undefined,
-                              {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric"
-                              }
-                            )}
+                            {isNaN(new Date(course.createdAt).getTime())
+                              ? "—"
+                              : new Date(course.createdAt).toLocaleDateString(
+                                  undefined,
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric"
+                                  }
+                                )}
                           </div>
                         </td>
 
                         <td className="px-6 py-4">
                           <div className="text-[10px] text-slate-800 uppercase">
                             Updated{" "}
-                            {new Date(course.updatedAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit"
-                            })}
+                            {isNaN(new Date(course.updatedAt).getTime())
+                              ? "—"
+                              : new Date(course.updatedAt).toLocaleTimeString(
+                                  [],
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit"
+                                  }
+                                )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
